@@ -233,6 +233,7 @@ int main(int argc, char* argv[]) {
 	if ( config["main"]["dmenu"] == "true" ) {
 		config["main"]["start-hidden"] = "false";
 	} else if ( dmenuarg ) {
+		std::printf("Dmenu args used, but not in dmenu mode\n");
 		usage();
 		return 0;
 	}
