@@ -1,5 +1,5 @@
-#ifndef DMENUENTRY
-#define DMENUENTRY
+#pragma once
+#ifdef FEATURE_SCRIPTING
 
 class dmenuentry {
 	public:

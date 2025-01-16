@@ -134,10 +134,12 @@ sysmenu::sysmenu(const std::map<std::string, std::map<std::string, std::string>>
 
 		entry_search.signal_changed().connect(sigc::mem_fun(*this, &sysmenu::on_search_changed));
 		entry_search.signal_activate().connect([this]() {
+			#ifdef FEATURE_SCRIPTING
 			if ( matches == 0 && config_main["main"]["dmenu"] == "true" ){
 				std::printf("%s\n", entry_search.get_text().c_str());
 				exit(0);
 			}
+			#endif
 			if (selected_child)
 				run_menu_item(selected_child, false);
 		});
@@ -208,6 +210,7 @@ sysmenu::sysmenu(const std::map<std::string, std::map<std::string, std::string>>
 
 	// Load entries
 	
+	#ifdef FEATURE_SCRIPTING
 	if (config_main["main"]["dmenu"] == "true"){
 		load_dmenu_items();
 	} else {
@@ -220,6 +223,16 @@ sysmenu::sysmenu(const std::map<std::string, std::map<std::string, std::string>>
 		std::thread thread_appinfo(&sysmenu::app_info_changed, this, nullptr);
 		thread_appinfo.detach();
 	}
+	#else
+	GAppInfoMonitor* app_info_monitor = g_app_info_monitor_get();
+	g_signal_connect(app_info_monitor, "changed", G_CALLBACK(+[](GAppInfoMonitor* monitor, gpointer user_data) {
+		sysmenu* self = static_cast<sysmenu*>(user_data);
+		self->app_info_changed(monitor);
+	}), this);
+
+	std::thread thread_appinfo(&sysmenu::app_info_changed, this, nullptr);
+	thread_appinfo.detach();
+	#endif
 }
 
 void sysmenu::on_search_changed() {
@@ -232,6 +245,7 @@ void sysmenu::on_search_changed() {
 
 bool sysmenu::on_key_press(const guint &keyval, const guint &keycode, const Gdk::ModifierType &state) {
 	switch(keyval){
+		#ifdef FEATURE_SCRIPTING
 		case GDK_KEY_Return:
 			if ( matches > 0 && state == Gdk::ModifierType::CONTROL_MASK && config_main["main"]["dmenu"] == "true"){
 				launcher *item = dynamic_cast<launcher*>(selected_child->get_child());
@@ -241,6 +255,7 @@ bool sysmenu::on_key_press(const guint &keyval, const guint &keycode, const Gdk:
 				exit(0);
 			}
 			break;
+		#endif
 		case GDK_KEY_Escape:
 			handle_signal(12);
 			break;
@@ -302,25 +317,11 @@ void sysmenu::app_info_changed(GAppInfoMonitor* gappinfomonitor) {
 	selected_child = nullptr;
 }
 
+#ifdef FEATURE_SCRIPTING
 void sysmenu::load_dmenu_items(){
 	for (std::string line; std::getline(std::cin,line);) {
 		load_menu_item(Glib::ustring(line));
 	}
-}
-
-void sysmenu::load_menu_item(const Glib::RefPtr<Gio::AppInfo> &app_info) {
-	if (!app_info || !app_info->should_show() || !app_info->get_icon())
-		return;
-
-	auto name = app_info->get_name();
-	auto exec = app_info->get_executable();
-
-	// Skip loading empty entries
-	if (name.empty() || exec.empty())
-		return;
-
-	items.push_back(std::unique_ptr<launcher>(new launcher(config_main, app_info)));
-	flowbox_itembox.append(*items.back());
 }
 
 void sysmenu::load_menu_item(Glib::ustring string) {
@@ -347,14 +348,32 @@ void sysmenu::load_menu_item(Glib::ustring string) {
 	items.push_back(std::unique_ptr<launcher>(new launcher(config_main, pentry)));
 	flowbox_itembox.append(*items.back());
 }
+#endif
+
+void sysmenu::load_menu_item(const Glib::RefPtr<Gio::AppInfo> &app_info) {
+	if (!app_info || !app_info->should_show() || !app_info->get_icon())
+		return;
+
+	auto name = app_info->get_name();
+	auto exec = app_info->get_executable();
+
+	// Skip loading empty entries
+	if (name.empty() || exec.empty())
+		return;
+
+	items.push_back(std::unique_ptr<launcher>(new launcher(config_main, app_info)));
+	flowbox_itembox.append(*items.back());
+}
 
 void sysmenu::run_menu_item(Gtk::FlowBoxChild* child, const bool &recent) {
 	launcher *item = dynamic_cast<launcher*>(child->get_child());
-
+	
+	#ifdef FEATURE_SCRIPTING
 	if ( config_main["main"]["dmenu"] == "true" ) {
 		std::printf("%s\n", item->get_long_name().c_str());
 		exit(0);
 	}
+	#endif
 
 	item->app_info->launch(std::vector<Glib::RefPtr<Gio::File>>());
 	handle_signal(12);
@@ -400,9 +419,13 @@ void sysmenu::handle_signal(const int &signum) {
 
 				break;
 			case 12: // Hiding window
+				
+				#ifdef FEATURE_SCRIPTING
 				if ( config_main["main"]["dmenu"] == "true"){
 					exit(1);
 				}
+				#endif
+
 				get_style_context()->remove_class("visible");
 				if (config_main["main"]["dock-items"] != "") {
 					revealer_search.set_reveal_child(false);
@@ -425,9 +448,13 @@ void sysmenu::handle_signal(const int &signum) {
 
 				break;
 			case 34: // Toggling window
+				
+				#ifdef FEATURE_SCRIPTING
 				if ( config_main["main"]["dmenu"] == "true"){
-					exit(0);
+					exit(1);
 				}
+				#endif
+
 				if (config_main["main"]["dock-items"] != "") {
 					starting_height = box_layout.get_height();
 					if (box_layout.get_height() < max_height / 2)

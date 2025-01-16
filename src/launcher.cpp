@@ -43,6 +43,7 @@ launcher::launcher(const std::map<std::string, std::map<std::string, std::string
 	set_tooltip_text(descr);
 }
 
+#ifdef FEATURE_SCRIPTING
 launcher::launcher(const std::map<std::string, std::map<std::string, std::string>>& cfg, const Glib::RefPtr<dmenuentry> &entry) : Gtk::Box(), config_main(cfg) {
 	name = entry->content;
 	long_name = entry->content;
@@ -94,6 +95,7 @@ launcher::launcher(const std::map<std::string, std::map<std::string, std::string
 	get_style_context()->add_class("launcher");
 	set_tooltip_text(descr);
 }
+#endif
 
 Glib::ustring launcher::get_long_name(){
 	return long_name;

@@ -29,18 +29,16 @@ arguments:
   -s	Hide the search bar
   -i	Set launcher icon size
   -I	Set dock icon size
-  -M	Set launcher margins
+  -m	Set launcher margins
   -u	Show name under icon
   -b	Show scroll bars
   -n	Max name length
-  -p	Set placeholder text
-  -P	Items per row
+  -p	Items per row
   -a	Anchors ("top right bottom left")
   -W	Set window width
   -H	Set window Height
-  -L	Disable use of layer shell
+  -l	Disable use of layer shell
   -v	Prints version info
-  -d	dmenu emulation
   -D	Set dock items ("Terminal,FileManager,WebBrowser,ect..")
 ```
 

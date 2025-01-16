@@ -10,7 +10,11 @@
 class launcher : public Gtk::Box {
 	public:
 		launcher(const std::map<std::string, std::map<std::string, std::string>>& cfg, const Glib::RefPtr<Gio::AppInfo> &app);
+		
+		#ifdef FEATURE_SCRIPTING
 		launcher(const std::map<std::string, std::map<std::string, std::string>>& cfg, const Glib::RefPtr<dmenuentry> &entry);
+		#endif
+
 		Glib::RefPtr<Gio::AppInfo> app_info;
 
 		bool matches(Glib::ustring text);

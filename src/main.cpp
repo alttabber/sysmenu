@@ -21,18 +21,25 @@ void usage() {
 	std::printf("  -s	Hide the search bar\n");
 	std::printf("  -i	Set launcher icon size\n");
 	std::printf("  -I	Set dock icon size\n");
-	std::printf("  -M	Set launcher margins\n");
 	std::printf("  -u	Show name under icon\n");
 	std::printf("  -b	Show scroll bars\n");
 	std::printf("  -n	Max name length\n");
-	std::printf("  -p	Set placeholder text\n");
-	std::printf("  -P	Items per row\n");
 	std::printf("  -a	Set anchors\n");
 	std::printf("  -W	Set window width\n");
 	std::printf("  -H	Set window Height\n");
+	#ifdef FEATURE_SCRIPTING
+	std::printf("  -M	Set launcher margins\n");
 	std::printf("  -m	Set primary monitor\n");
+	std::printf("  -p	Set placeholder text\n");
+	std::printf("  -P	Items per row\n");
 	std::printf("  -L	Disable use of layer shell\n");
 	std::printf("  -d	dmenu emulation\n");
+	#else
+	std::printf("  -m	Set launcher margins\n");
+	std::printf("  -M	Set primary monitor\n");
+	std::printf("  -P	Items per row\n");
+	std::printf("  -l	Disable use of layer shell\n");
+	#endif
 	std::printf("  -D	Set dock items\n");
 	std::printf("  -v	Prints version info\n");
 	std::printf("  -h	Show this help message\n");
@@ -98,7 +105,11 @@ int main(int argc, char* argv[]) {
 
 	// Read launch arguments
 	#ifdef CONFIG_RUNTIME
+
+	#ifdef FEATURE_SCRIPTING
 	bool dmenuarg=false;
+	#endif
+
 	while (true) {
 		switch(getopt(argc, argv, "Ssi:I:m:ubn:p:a:W:H:M:l:D:vhLP:dw:")) {
 			case 'S':
@@ -117,10 +128,6 @@ int main(int argc, char* argv[]) {
 				config["main"]["dock-icon-size"] = optarg;
 				continue;
 
-			case 'M':
-				config["main"]["app-margin"] = optarg;
-				continue;
-
 			case 'u':
 				config["main"]["name-under-icon"] = "true";
 				continue;
@@ -132,15 +139,6 @@ int main(int argc, char* argv[]) {
 			case 'n':
 				config["main"]["name-length"] = optarg;
 				continue;
-
-			case 'P':
-				config["main"]["items-per-row"] = optarg;
-				continue;
-
-			case 'p':
-				config["main"]["prompt"] = optarg;
-				continue;
-
 			case 'a':
 				config["main"]["anchors"] = optarg;
 				continue;
@@ -153,30 +151,67 @@ int main(int argc, char* argv[]) {
 				config["main"]["height"] = optarg;
 				continue;
 
-			case 'm':
-				config["main"]["monitor"] = optarg;
-				continue;
-
-			// -l sets the number of lines in dmenu scripts
-			// there is no trivial way to implement it, but ignoring it is an option
-			case 'l':
-			case 'w':
-				dmenuarg=true;
-				break;
-
-			case 'L':
-				config["main"]["layer-shell"] = "false";
-				continue;
-
 			case 'D':
 				config["main"]["dock-items"] = optarg;
 				config["main"]["layer-shell"] = "true";
 				config["main"]["anchors"] = "top right bottom left";
 				continue;
 
+			// Assumption: who enables scripting will prefer dmenu-compatible CLI
+			// who doesn't prefers backwards-compatible CLI
+			#ifdef FEATURE_SCRIPTING
+
+			case 'M':
+				config["main"]["app-margin"] = optarg;
+				continue;
+
+			case 'P':
+				config["main"]["items-per-row"] = optarg;
+				continue;
+
+			case 'p':
+				config["main"]["prompt"] = optarg;
+				continue;
+
+
+			case 'm':
+				config["main"]["monitor"] = optarg;
+				continue;
+
 			case 'd':
 				config["main"]["dmenu"] = "true";
 				continue;
+
+			case 'L':
+				config["main"]["layer-shell"] = "false";
+				continue;
+
+			// -l sets the number of lines and -w window embedding in dmenu scripts
+			// there is no trivial way to implement it, but ignoring it is an option
+			case 'l':
+			case 'w':
+				dmenuarg=true;
+				continue;
+
+			#else
+
+			case 'm':
+				config["main"]["app-margin"] = optarg;
+				continue;
+
+			case 'p':
+				config["main"]["items-per-row"] = optarg;
+				continue;
+
+			case 'M':
+				config["main"]["monitor"] = optarg;
+				continue;
+
+			case 'l':
+				config["main"]["layer-shell"] = "false";
+				continue;
+
+			#endif
 
 			case 'v':
 				std::printf("Commit: %s\nDate: %s\n", GIT_COMMIT_MESSAGE, GIT_COMMIT_DATE);
@@ -194,12 +229,14 @@ int main(int argc, char* argv[]) {
 			break;
 	}
 
+	#ifdef FEATURE_SCRIPTING
 	if ( config["main"]["dmenu"] == "true" ) {
 		config["main"]["start-hidden"] = "false";
 	} else if ( dmenuarg ) {
 		usage();
 		return 0;
 	}
+	#endif
 	#endif
 
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create("funky.sys64.sysmenu");
@@ -208,12 +245,18 @@ int main(int argc, char* argv[]) {
 	load_libsysmenu();
 	win = sysmenu_create_ptr(config);
 
+	#ifdef FEATURE_SCRIPTING
 	// Catch signals if not in dmenu mode
 	if (config["main"]["dmenu"] != "true") {
 		signal(SIGUSR1, handle_signal);
 		signal(SIGUSR2, handle_signal);
 		signal(SIGRTMIN, handle_signal);
 	}
+	#else
+	signal(SIGUSR1, handle_signal);
+	signal(SIGUSR2, handle_signal);
+	signal(SIGRTMIN, handle_signal);
+	#endif
 
 	return app->run();
 }
