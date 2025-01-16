@@ -135,7 +135,7 @@ sysmenu::sysmenu(const std::map<std::string, std::map<std::string, std::string>>
 		entry_search.signal_changed().connect(sigc::mem_fun(*this, &sysmenu::on_search_changed));
 		entry_search.signal_activate().connect([this]() {
 			if ( matches == 0 && config_main["main"]["dmenu"] == "true" ){
-				std::cout << entry_search.get_text() << std::endl;
+				std::printf("%s\n", entry_search.get_text().c_str());
 				exit(0);
 			}
 			if (selected_child)
@@ -235,9 +235,9 @@ bool sysmenu::on_key_press(const guint &keyval, const guint &keycode, const Gdk:
 		case GDK_KEY_Return:
 			if ( matches > 0 && state == Gdk::ModifierType::CONTROL_MASK && config_main["main"]["dmenu"] == "true"){
 				launcher *item = dynamic_cast<launcher*>(selected_child->get_child());
-				std::cout << item->get_long_name() << std::endl;
+				std::printf("%s\n", item->get_long_name().c_str());
 			} else if (state == Gdk::ModifierType::SHIFT_MASK && config_main["main"]["dmenu"] == "true") {
-				std::cout << entry_search.get_text() << std::endl;
+				std::printf("%s\n", entry_search.get_text().c_str());
 				exit(0);
 			}
 			break;
@@ -352,7 +352,7 @@ void sysmenu::run_menu_item(Gtk::FlowBoxChild* child, const bool &recent) {
 	launcher *item = dynamic_cast<launcher*>(child->get_child());
 
 	if ( config_main["main"]["dmenu"] == "true" ) {
-		std::cout << item->get_long_name() << std::endl;
+		std::printf("%s\n", item->get_long_name().c_str());
 		exit(0);
 	}
 

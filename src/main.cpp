@@ -3,6 +3,7 @@
 #include "config_parser.hpp"
 #include "git_info.hpp"
 
+#include <cstdio>
 #include <gtkmm/application.h>
 #include <filesystem>
 #include <iostream>
@@ -13,28 +14,28 @@ void handle_signal(int signum) {
 }
 
 void usage() {
-	std::cout << "usage:" << std::endl;
-	std::cout << "  sysmenu [argument...]:\n" << std::endl;
-	std::cout << "arguments:" << std::endl;
-	std::cout << "  -S	Hide the program on launch" << std::endl;
-	std::cout << "  -s	Hide the search bar" << std::endl;
-	std::cout << "  -i	Set launcher icon size" << std::endl;
-	std::cout << "  -I	Set dock icon size" << std::endl;
-	std::cout << "  -M	Set launcher margins" << std::endl;
-	std::cout << "  -u	Show name under icon" << std::endl;
-	std::cout << "  -b	Show scroll bars" << std::endl;
-	std::cout << "  -n	Max name length" << std::endl;
-	std::cout << "  -p	Set placeholder text" << std::endl;
-	std::cout << "  -P	Items per row" << std::endl;
-	std::cout << "  -a	Set anchors" << std::endl;
-	std::cout << "  -W	Set window width" << std::endl;
-	std::cout << "  -H	Set window Height" << std::endl;
-	std::cout << "  -m	Set primary monitor" << std::endl;
-	std::cout << "  -L	Disable use of layer shell" << std::endl;
-	std::cout << "  -d	dmenu emulation" << std::endl;
-	std::cout << "  -D	Set dock items" << std::endl;
-	std::cout << "  -v	Prints version info" << std::endl;
-	std::cout << "  -h	Show this help message" << std::endl;
+	std::printf("usage:\n");
+	std::printf("  sysmenu [argument...]:\n\n");
+	std::printf("arguments:\n");
+	std::printf("  -S	Hide the program on launch\n");
+	std::printf("  -s	Hide the search bar\n");
+	std::printf("  -i	Set launcher icon size\n");
+	std::printf("  -I	Set dock icon size\n");
+	std::printf("  -M	Set launcher margins\n");
+	std::printf("  -u	Show name under icon\n");
+	std::printf("  -b	Show scroll bars\n");
+	std::printf("  -n	Max name length\n");
+	std::printf("  -p	Set placeholder text\n");
+	std::printf("  -P	Items per row\n");
+	std::printf("  -a	Set anchors\n");
+	std::printf("  -W	Set window width\n");
+	std::printf("  -H	Set window Height\n");
+	std::printf("  -m	Set primary monitor\n");
+	std::printf("  -L	Disable use of layer shell\n");
+	std::printf("  -d	dmenu emulation\n");
+	std::printf("  -D	Set dock items\n");
+	std::printf("  -v	Prints version info\n");
+	std::printf("  -h	Show this help message\n");
 }
 
 void load_libsysmenu() {
@@ -178,8 +179,7 @@ int main(int argc, char* argv[]) {
 				continue;
 
 			case 'v':
-				std::cout << "Commit: " << GIT_COMMIT_MESSAGE << std::endl;
-				std::cout << "Date: " << GIT_COMMIT_DATE << std::endl;
+				std::printf("Commit: %s\nDate: %s\n", GIT_COMMIT_MESSAGE, GIT_COMMIT_DATE);
 				return 0;
 
 			case 'h':
